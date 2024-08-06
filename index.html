@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: grey;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        canvas {
+            background-color: white;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="600" height="600"></canvas>
+    <script src="network.js"></script>
+    <script>
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let trainingdata = [];
+
+        let testingData = [];
+        for (let i = 0; i < 1000; i++) {
+            testingData.push([i / 10]);
+        }
+
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawTrainingData(data) {
+            data.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point[0] * 6, canvas.height - point[1] * 6, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'blue';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        function drawNetworkData(data) {
+            let results = [];
+            for (let i = 0; i < data.length; i++) {
+                results.push([data[i][0], net.run([data[i]])]);
+            }
+            results.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point[0] * 6, canvas.height - point[1] * 6, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        function getMousePos(canvas, evt) {
+            let rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        let isMouseDown = false;
+        let temps = 0;
+
+        canvas.addEventListener('mousedown', function (evt) {
+            if (evt.button === 0) { // left mouse button
+                isMouseDown = true;
+            }
+        });
+
+        canvas.addEventListener('mouseup', function (evt) {
+            if (evt.button === 0) { // left mouse button
+                isMouseDown = false;
+            }
+        });
+
+        canvas.addEventListener('mousemove', function (evt) {
+            if (isMouseDown) {
+                temps++;
+                if (temps % 10 == 0) {
+                    temps = 0;
+                    let mousePos = getMousePos(canvas, evt);
+                    let x = mousePos.x / 6;
+                    let y = (canvas.height - mousePos.y) / 6;
+                    trainingdata.push([x, y]);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawTrainingData(trainingdata);
+                    drawNetworkData(testingData);
+                }
+            }
+        });
+
+        drawTrainingData(trainingdata);
+
+        let net = new NeuralNetwork([1, 5, 10, 10, 5, 1]);
+        let isRunning = false;
+        let inter;
+
+        function startTraining() {
+            inter = setInterval(() => {
+                shuffleArray(trainingdata);
+                net.train(trainingdata, 0.2);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawTrainingData(trainingdata);
+                drawNetworkData(testingData);
+            }, 1);
+        }
+
+        function stopTraining() {
+            clearInterval(inter);
+        }
+
+        canvas.addEventListener('contextmenu', function (evt) {
+            evt.preventDefault();
+            if (isRunning) {
+                stopTraining();
+            } else {
+                startTraining();
+            }
+            isRunning = !isRunning;
+        });
+
+        // startTraining();
+    </script>
+</body>
+
+</html>
