@@ -78,14 +78,14 @@
 
         let isMouseDown = false;
         let temps = 0;
-
+        let body =document.querySelector("body");
         canvas.addEventListener('mousedown', function (evt) {
             if (evt.button === 0) { // left mouse button
                 isMouseDown = true;
             }
         });
 
-        canvas.addEventListener('mouseup', function (evt) {
+        body.addEventListener('mouseup', function (evt) {
             if (evt.button === 0) { // left mouse button
                 isMouseDown = false;
             }
@@ -94,7 +94,7 @@
         canvas.addEventListener('mousemove', function (evt) {
             if (isMouseDown) {
                 temps++;
-                if (temps % 10 == 0) {
+                if (temps % 20 == 0) {
                     temps = 0;
                     let mousePos = getMousePos(canvas, evt);
                     let x = mousePos.x / 6;
@@ -109,14 +109,14 @@
 
         drawTrainingData(trainingdata);
 
-        let net = new NeuralNetwork([1, 5, 10, 10, 5, 1]);
+        let net = new NeuralNetwork([1, 5, 10,10,5, 1]);
         let isRunning = false;
         let inter;
 
         function startTraining() {
             inter = setInterval(() => {
                 shuffleArray(trainingdata);
-                net.train(trainingdata, 0.2);
+                net.train(trainingdata, 0.1);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 drawTrainingData(trainingdata);
                 drawNetworkData(testingData);
